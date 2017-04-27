@@ -29,7 +29,7 @@ extern volatile u32 G_au32ButtonDebounceTimeStart[TOTAL_BUTTONS];  /* From butto
 Global variable definitions with scope limited to this local application.
 Variables names shall start with "ISR_" and be declared as static.
 ***********************************************************************************************************************/
-
+static u32 ISR_u32ButtonIntte;
 
 /**********************************************************************************************************************
 Interrupt Service Routine Definitions
@@ -181,14 +181,14 @@ void PIOA_IrqHandler(void)
   u32GPIOInterruptSources  = AT91C_BASE_PIOA->PIO_ISR;
 
   /******** DO NOT set a breakpoint before this line of the ISR because the debugger
-  will "read" PIO_ISR and clear the flags. ******/
+  will "read" PIO_ISR and clear the flags. ******/  
+
   
   /* Examine button interrupts */
   u32ButtonInterrupts = u32GPIOInterruptSources & GPIOA_BUTTONS;
-  
   /* Check if any port A buttons interrupted */
   if(u32ButtonInterrupts)
-  {
+  { ISR_u32ButtonIntte++;
     /* Parse through all the buttons to find those that have interrupted */
     for(u8 i = 0; i < TOTAL_BUTTONS; i++)
     {
