@@ -135,37 +135,43 @@ State Machine Function Definitions
 /*-------------------------------------------------------------------------------------------------------------------*/
 /* Wait for ??? */
 static void UserApp1SM_Idle(void)
-{static u32 u32Counter=0,u32Counter1=0,u32Variablecounter_ms=500;
- static bool blighton=FALSE,bquick_or_slow=FALSE;
+{static u32 u32Counter=0,u32Counter1=0,u32Lightontime=0;
+ static bool blighton=FALSE;
  u32Counter++;u32Counter1++;
-/*After a cycle,the light changes his status*/
- if(u32Counter==u32Variablecounter_ms)
- {
-  if(blighton==FALSE)
-    HEARTBEAT_OFF();
-  else
-    HEARTBEAT_ON();
-  blighton=!blighton;
-  u32Counter=0;
- 
- }
-/*Make the cycle's time short until the cycle's time is less than 15ms*/ 
-     if((u32Counter1==2000)&&(bquick_or_slow==FALSE) )
-  { 
-      u32Variablecounter_ms=u32Variablecounter_ms/2;
-      if(u32Variablecounter_ms<=15)
-        bquick_or_slow=TRUE;
-      u32Counter1=0;
-      u32Counter=0;
+ /*The first 100ms light is always off */
+ if(u32Lightontime==0)
+  {HEARTBEAT_OFF();
+   u32Counter1=0;
   }
-/*Make the cycle's time long until the cycle's time is more than 480ms*/  
-    if((u32Counter1==2000)&&(bquick_or_slow==TRUE))
-  { 
-      u32Variablecounter_ms*=2;
-      if(u32Variablecounter_ms>=480)
-        bquick_or_slow=FALSE;
-      u32Counter1=0;
-      u32Counter=0;
+ /*The situation on1 off9 to on10 off0*/
+ else if(u32Lightontime!=0)
+ { 
+  if(u32Counter1==1)
+    {HEARTBEAT_ON();
+    }
+  if(u32Counter1==(u32Lightontime+1))
+    {HEARTBEAT_OFF();
+    }
+  if(u32Counter1==10)
+    {u32Counter1=0;
+    }
+ }
+ /*Every 100ms change the time of the light on*/
+  if(u32Counter==100)
+  {  u32Counter=0;
+   if(blighton==FALSE)
+   {u32Lightontime++;
+   }
+   if(blighton==TRUE)
+   {u32Lightontime--;
+   } 
+   if(u32Lightontime==10)
+   {blighton=TRUE;
+   }
+   if(u32Lightontime==0)
+   {blighton=FALSE;
+   }
+   
   }
 } /* end UserApp1SM_Idle() */
     
