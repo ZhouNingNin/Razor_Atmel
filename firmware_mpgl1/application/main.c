@@ -41,20 +41,7 @@ the 1ms period.
 
 void main(void)
 { 
-  typedef struct
-  {
-    u8 u8Counter;
-    void *NextTestStructtype
-  }TestStructtype;
-  
-  TestStructtype A,B;
-  A.u8Counter=1;
-  B.u8Counter=2;
-  A.NextTestStructtype=&B;
-  B.NextTestStructtype=NULL;
-  
- 
-  
+
   G_u32SystemFlags |= _SYSTEM_INITIALIZING;
   /* Low level initialization */
   WatchDogSetup(); /* During development, does not reset processor if timeout */

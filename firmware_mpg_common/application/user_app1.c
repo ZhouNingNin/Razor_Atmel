@@ -136,6 +136,90 @@ State Machine Function Definitions
 /* Wait for ??? */
 static void UserApp1SM_Idle(void)
 {
+  static u8 u8continus=0;
+  static u8 u8count=0;
+  static u8 u8statuscount=10;
+  static u8 Au8MyName[]={"abc"};
+  static u8 u8Num=3;
+  static u8 u8bool=0;
+  static u8 *pu8Pointer;
+  u8 AuInputName[2]={0,0};
+  u8 Input=0;
+  
+  /*Put the point to MyName array*/
+  pu8Pointer=Au8MyName;
+  DebugScanf(AuInputName);
+  Input=AuInputName[0];
+  /*Judge if i input or not*/
+  if(Input!=0)
+  {
+      if(Input==pu8Pointer[u8continus])//constrast the input values and my name
+      {
+        u8continus++;
+      }
+      else 
+      {
+        if(Input==pu8Pointer[0])//watch out the situation that input "aabc","ababc" and so on,we can not make u8continus to 0 and should to 1
+        {
+          u8continus=1;
+        }
+        else
+        {
+          u8continus=0;
+        }
+      }
+  }
+  /*Judge whether a string of name appear or not*/
+  if(u8continus==3)
+  {
+    u8count++;
+    u8continus=0;
+    u8bool=1;
+  }
+  /*Judge whewher the output value ten times more*/
+  if(u8count==u8statuscount)
+  {
+    u8Num += 1;
+    u8statuscount*=10;
+  }
+  /*when a name is detected ,output by rule*/
+  if(u8bool==1)
+  {
+    DebugLineFeed();
+    for(u8 i=0;i<u8Num;i++)
+    {
+      DebugPrintf("*");
+    }
+    DebugLineFeed();
+    DebugPrintf("*");
+    DebugPrintNumber(u8count);
+    DebugPrintf("*");
+    DebugLineFeed();
+    for(u8 i=0;i<u8Num;i++)
+    {
+      DebugPrintf("*");
+    }
+    DebugLineFeed();  
+    u8bool=0;
+  }
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 
 } /* end UserApp1SM_Idle() */
     
