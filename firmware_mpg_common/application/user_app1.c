@@ -139,42 +139,51 @@ static void UserApp1SM_Idle(void)
   static u8 u8continus=0;
   static u8 u8count=0;
   static u8 u8statuscount=10;
-  static u8 Au8MyName[]={"abc"};
+  static u8 Au8MyName[]={"jasonabcabc"};
+  static u8 Au8Store[30];
   static u8 u8Num=3;
   static u8 u8bool=0;
-  static u8 *pu8Pointer;
-  u8 AuInputName[2]={0,0};
-  u8 Input=0;
+  static u8 u8boolstrcmp=1;
+  u8 AuInputName[2]={10,0};//With ten digits initialize array values because we can not input two words in 1ms
+  u8 Input=10;
   
-  /*Put the point to MyName array*/
-  pu8Pointer=Au8MyName;
+  /*According to the length of the real name assign the'\0'*/
+  Au8Store[strlen(Au8MyName)]='\0';
   DebugScanf(AuInputName);
   Input=AuInputName[0];
   /*Judge if i input or not*/
-  if(Input!=0)
+  if(Input!=10)
   {
-      if(Input==pu8Pointer[u8continus])//constrast the input values and my name
+    if(u8continus!=strlen(Au8MyName))//input content to store array
+    {
+      Au8Store[u8continus]=Input;
+      u8continus++;
+    }
+    else
+    {
+      for(u8 i=0;i<(strlen(Au8MyName)-1);i++)//let the content of the inputarray left shift
       {
-        u8continus++;
+        Au8Store[i]=Au8Store[i+1];
       }
-      else 
+      Au8Store[strlen(Au8MyName)-1]=Input;
+    }
+    if(strcmp(Au8Store,Au8MyName)==0)//compare the realnamearray to the storearray
+    {
+      u8boolstrcmp=0;
+      u8continus=0;
+      for(u8 i=0;i<strlen(Au8MyName);i++)//With ten digits empty array values because we can not input two words in 1ms
       {
-        if(Input==pu8Pointer[0])//watch out the situation that input "aabc","ababc" and so on,we can not make u8continus to 0 and should to 1
-        {
-          u8continus=1;
-        }
-        else
-        {
-          u8continus=0;
-        }
+        Au8Store[i]=10;
       }
+    }
   }
   /*Judge whether a string of name appear or not*/
-  if(u8continus==3)
+  if(u8boolstrcmp==0)
   {
     u8count++;
     u8continus=0;
     u8bool=1;
+    u8boolstrcmp=1;
   }
   /*Judge whewher the output value ten times more*/
   if(u8count==u8statuscount)
