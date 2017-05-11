@@ -127,7 +127,23 @@ void UserApp1RunActiveState(void)
 /* Private functions                                                                                                  */
 /*--------------------------------------------------------------------------------------------------------------------*/
 
-
+static void OutputCount(u8 count_,u8 Num_)
+{
+  u8 au8output[128];
+  for(u8 i=0;i<Num_;i++)
+  {
+    au8output[i]='*';
+  }
+  DebugLineFeed();
+  DebugPrintf(au8output);
+  DebugLineFeed();
+  DebugPrintf("*");  
+  DebugPrintNumber(count_);
+  DebugPrintf("*");
+  DebugLineFeed();  
+  DebugPrintf(au8output);
+  DebugLineFeed();  
+}
 /**********************************************************************************************************************
 State Machine Function Definitions
 **********************************************************************************************************************/
@@ -139,41 +155,41 @@ static void UserApp1SM_Idle(void)
   static u8 u8continus=0;
   static u8 u8count=0;
   static u8 u8statuscount=10;
-  static u8 Au8MyName[]={"jasonabcabc"};
-  static u8 Au8Store[30];
+  static u8 au8MyName[]={"abcjason"};
+  static u8 au8Store[30];
   static u8 u8Num=3;
   static u8 u8bool=0;
   static u8 u8boolstrcmp=1;
-  u8 AuInputName[2]={10,0};//With ten digits initialize array values because we can not input two words in 1ms
+  u8 au8InputName[2]={10,0};//With ten digits initialize array values because we can not input two words in 1ms
   u8 Input=10;
   
   /*According to the length of the real name assign the'\0'*/
-  Au8Store[strlen(Au8MyName)]='\0';
-  DebugScanf(AuInputName);
-  Input=AuInputName[0];
+  au8Store[strlen(au8MyName)]='\0';
+  DebugScanf(au8InputName);
+  Input=au8InputName[0];
   /*Judge if i input or not*/
   if(Input!=10)
   {
-    if(u8continus!=strlen(Au8MyName))//input content to store array
+    if(u8continus!=strlen(au8MyName))//input content to store array
     {
-      Au8Store[u8continus]=Input;
+      au8Store[u8continus]=Input;
       u8continus++;
     }
     else
     {
-      for(u8 i=0;i<(strlen(Au8MyName)-1);i++)//let the content of the inputarray left shift
+      for(u8 i=0;i<(strlen(au8MyName)-1);i++)//let the content of the inputarray left shift
       {
-        Au8Store[i]=Au8Store[i+1];
+        au8Store[i]=au8Store[i+1];
       }
-      Au8Store[strlen(Au8MyName)-1]=Input;
+      au8Store[strlen(au8MyName)-1]=Input;
     }
-    if(strcmp(Au8Store,Au8MyName)==0)//compare the realnamearray to the storearray
+    if(strcmp(au8Store,au8MyName)==0)//compare the realnamearray to the storearray
     {
       u8boolstrcmp=0;
       u8continus=0;
-      for(u8 i=0;i<strlen(Au8MyName);i++)//With ten digits empty array values because we can not input two words in 1ms
+      for(u8 i=0;i<strlen(au8MyName);i++)//With ten digits empty array values because we can not input two words in 1ms
       {
-        Au8Store[i]=10;
+        au8Store[i]=10;
       }
     }
   }
@@ -194,21 +210,7 @@ static void UserApp1SM_Idle(void)
   /*when a name is detected ,output by rule*/
   if(u8bool==1)
   {
-    DebugLineFeed();
-    for(u8 i=0;i<u8Num;i++)
-    {
-      DebugPrintf("*");
-    }
-    DebugLineFeed();
-    DebugPrintf("*");
-    DebugPrintNumber(u8count);
-    DebugPrintf("*");
-    DebugLineFeed();
-    for(u8 i=0;i<u8Num;i++)
-    {
-      DebugPrintf("*");
-    }
-    DebugLineFeed();  
+    OutputCount(u8count,u8Num);
     u8bool=0;
   }
 } /* end UserApp1SM_Idle() */
