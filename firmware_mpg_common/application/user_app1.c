@@ -87,7 +87,6 @@ Promises:
 */
 void UserApp1Initialize(void)
 {
- 
   /* If good initialization, set state to Idle */
   if( 1 )
   {
@@ -98,6 +97,7 @@ void UserApp1Initialize(void)
     /* The task isn't properly initialized, so shut it down and don't run */
     UserApp1_StateMachine = UserApp1SM_FailedInit;
   }
+  LCDCommand(LCD_HOME_CMD);
 
 } /* end UserApp1Initialize() */
 
@@ -136,6 +136,111 @@ State Machine Function Definitions
 /* Wait for ??? */
 static void UserApp1SM_Idle(void)
 {
+  static u32 u32Timecount=0;
+  static u8 au8Line[20][21];//Define that we can input 20 lines content
+  static u8 u8Input[2];
+  static u8 Index1=0;
+  static u8 Index2=0;
+  static bool bOut=FALSE;
+  static bool bInitialize=FALSE;
+  static u8 IndexOut=0;
+  u8 u8Inputvalue=1;
+
+  /*Initialize the 2-d array one time*/
+  if(bInitialize==FALSE)
+  {
+    for(u8 i=0;i<20;i++)
+    {
+      for(u8 j=0;j<21;j++)
+      {
+        au8Line[i][j]='\0';
+      }
+    }
+    bInitialize=TRUE;
+  }
+  u8Inputvalue=DebugScanf(u8Input);
+  /*Determine whether there is input */
+  if(u8Inputvalue==1)
+  {
+    au8Line[Index1][Index2]=u8Input[0];
+    Index2++;
+    if(Index2==20)
+    {
+      Index1++;
+      Index2=0;
+    }  
+  }
+  /*Determine whether has confirmed that enter or exit the show the next input*/
+  if(WasButtonPressed(BUTTON0))
+  {
+    LCDCommand(LCD_CLEAR_CMD);
+    ButtonAcknowledge(BUTTON0);
+    if(bOut==TRUE)
+    {
+      bInitialize=FALSE;
+    }
+    bOut=!bOut; 
+    Index1=0;
+    Index2=0;
+    u32Timecount=0;
+    IndexOut=0;
+  }
+  /*Start to display what you input*/
+  if(bOut)
+  {
+    if(au8Line[1][0]=='\0')//when your input is only one line
+    {      
+        LCDMessage(LINE1_START_ADDR,&au8Line[IndexOut][0]);      
+    }
+    else//when your input is more than one line ,every two seconds to scroll up one line
+    {
+      if((u32Timecount==2000&&au8Line[IndexOut+1][0]!='\0'))
+      {
+      LCDCommand(LCD_CLEAR_CMD);
+      LCDMessage(LINE1_START_ADDR,&au8Line[IndexOut][0]);
+      LCDMessage(LINE2_START_ADDR,&au8Line[IndexOut+1][0]); 
+      IndexOut++;    
+      u32Timecount=0;
+      }
+    }
+  }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  
+  
+    
+
+    
+
+
+
+  
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+
+
+
+    
+
 
 } /* end UserApp1SM_Idle() */
     
