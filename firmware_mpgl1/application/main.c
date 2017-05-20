@@ -32,7 +32,7 @@ Main Program
 Main has two sections:
 
 1. Initialization which is run once on power-up or reset.  All drivers and applications are setup here without timing
-contraints but must complete execution regardless of success or failure of starting the application. 
+contraints but must complete execution 2regardless of success or failure of starting the application. 
 
 2. Super loop which runs infinitely giving processor time to each application.  The total loop time should not exceed
 1ms of execution time counting all application execution.  SystemSleep() will execute to complete the remaining time in
@@ -40,22 +40,10 @@ the 1ms period.
 ***********************************************************************************************************************/
 
 void main(void)
-{ 
-  typedef struct
-  {
-    u8 u8Counter;
-    void *NextTestStructtype
-  }TestStructtype;
-  
-  TestStructtype A,B;
-  A.u8Counter=1;
-  B.u8Counter=2;
-  A.NextTestStructtype=&B;
-  B.NextTestStructtype=NULL;
-  
- 
-  
+
+{
   G_u32SystemFlags |= _SYSTEM_INITIALIZING;
+
   /* Low level initialization */
   WatchDogSetup(); /* During development, does not reset processor if timeout */
   GpioSetup();
@@ -73,19 +61,16 @@ void main(void)
   TimerInitialize();  
   SspInitialize();
   TWIInitialize();
-  Adc12Initialize();
-  
+
   LcdInitialize();
   LedInitialize();
   ButtonInitialize();
   AntInitialize();
-  SdCardInitialize();
 
   /* Application initialization */
   UserApp1Initialize();
   UserApp2Initialize();
   UserApp3Initialize();
-
   
   /* Exit initialization */
   SystemStatusReport();
@@ -103,12 +88,10 @@ void main(void)
     TimerRunActiveState(); 
     SspRunActiveState();
     TWIRunActiveState();
-    Adc12RunActiveState();
     MessagingRunActiveState();
     DebugRunActiveState();
     LcdRunActiveState();
     AntRunActiveState();
-    SdCardRunActiveState();
 
     /* Applications */
     UserApp1RunActiveState();
