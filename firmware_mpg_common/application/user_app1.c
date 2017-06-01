@@ -121,20 +121,21 @@ void UserApp1RunActiveState(void)
 /*--------------------------------------------------------------------------------------------------------------------*/
 /* Private functions                                                                                                  */
 /*--------------------------------------------------------------------------------------------------------------------*/
+/*Judge what we input is right*/
 static bool JudgeString(u8 *au8Input_)
 {
-  u8 *p = au8Input_;
+  u8 *pu8Pointer = au8Input_;
   bool First=FALSE;
-  u8 au8LedNames[] = {'W','P','B','C','G','Y','O','R'};
-	if(!p)
+  u8 au8LedNames[] = {'W','P','B','C','G','Y','O','R','w','p','b','c','g','y','o','r'};
+	if(!pu8Pointer)
   {
 		return FALSE;
 	}
 	else
   {
-    for(u8 i=0;i<8;i++)
+    for(u8 i=0;i<16;i++)
     {
-      if(*p==au8LedNames[i])
+      if(*pu8Pointer==au8LedNames[i])
       {
         First=TRUE;
       }      
@@ -145,42 +146,42 @@ static bool JudgeString(u8 *au8Input_)
 		}
 		else
     {
-			p++;
-			if(*p != '-')
+			pu8Pointer++;
+			if(*pu8Pointer != '-')
       {
 				return FALSE;
 			}
 			else
       {
-				p++;
-				if(*p > '9' || *p < '0')
+				pu8Pointer++;
+				if(*pu8Pointer > '9' || *pu8Pointer < '0')
         {
 					return FALSE;
 				}
 				else
         {
-					while(*p <= '9' && *p >= '0')
+					while(*pu8Pointer <= '9' && *pu8Pointer >= '0')
           {
-						p++;
+						pu8Pointer++;
 					}
-					if(*p != '-')
+					if(*pu8Pointer != '-')
           {
 						return FALSE;
 					}
 					else
           {
-						p++;
-						if(*p > '9' || *p < '0')
+						pu8Pointer++;
+						if(*pu8Pointer > '9' || *pu8Pointer < '0')
             {
 							return FALSE;
 						}
 						else
             {
-							while(*p <= '9' && *p >= '0')
+							while(*pu8Pointer <= '9' && *pu8Pointer >= '0')
               {
-								p++;
+								pu8Pointer++;
 							}
-              if(*p=='\0')
+              if(*pu8Pointer=='\0')
               {
 							  return TRUE; 
               }
@@ -195,49 +196,49 @@ static bool JudgeString(u8 *au8Input_)
     }
   }
 }
-    
+/*extract the ON time from the command of this line*/    
 static u32 OnTime(u8 *au8Input_)
 {
   u32 u32num=0;
-  u8 *p=au8Input_;
+  u8 *pu8Pointer=au8Input_;
   
-  while(*p<'0'||*p>'9')
+  while(*pu8Pointer<'0'||*pu8Pointer>'9')
   {
-    p++;
+    pu8Pointer++;
   }
-  while(*p>='0'&&*p<='9')
+  while(*pu8Pointer>='0'&&*pu8Pointer<='9')
   {
     u32num*=10;
-    u32num+=(*p-'0');
-    p++;
+    u32num+=(*pu8Pointer-'0');
+    pu8Pointer++;
   }
   return u32num;  
 }
-
+/*extract the OFF time from the command of this line*/   
 static u32 OffTime(u8 *au8Input_)
 {
   u32 u32num=0;
-  u8 *p=au8Input_;
+  u8 *pu8Pointer=au8Input_;
   
-  while(*p!='-')
+  while(*pu8Pointer!='-')
   {
-    p++;
+    pu8Pointer++;
   }
-  p++;
-  while(*p!='-')
+  pu8Pointer++;
+  while(*pu8Pointer!='-')
   {
-    p++;
+    pu8Pointer++;
   }
-  p++;
-  while(*p>='0'&&*p<='9')
+  pu8Pointer++;
+  while(*pu8Pointer>='0'&&*pu8Pointer<='9')
   {
     u32num*=10;
-    u32num+=(*p-'0');
-    p++;
+    u32num+=(*pu8Pointer-'0');
+    pu8Pointer++;
   }
   return u32num; 
 }
- 
+/*Match the 'R' to RED,'W' to WHITE and so on*/ 
 static LedNumberType LedColor(u8 *au8Input_)
 {
   switch(*au8Input_)
@@ -250,20 +251,18 @@ static LedNumberType LedColor(u8 *au8Input_)
   case 'G':return GREEN;  break;
   case 'Y':return YELLOW; break;
   case 'O':return ORANGE;break;
+  case 'r':return RED; break;
+  case 'w':return WHITE; break;  
+  case 'p':return PURPLE; break;
+  case 'b':return BLUE; break;
+  case 'c':return CYAN;  break;
+  case 'g':return GREEN;  break;
+  case 'y':return YELLOW; break;
+  case 'o':return ORANGE;break;
   default :return LCD_RED;break;
   }  
 }
   
-  
-  
-  
-  
-  
-  
-  
-  
-  
-
 
 
 /**********************************************************************************************************************
@@ -275,119 +274,155 @@ State Machine Function Definitions
 static void UserApp1SM_Idle(void)
 {
   static bool bProgramInterface=TRUE;
-  static u8 au8bProgramInterface[]="LED Programming Interface \n\rPress 1 to program LED command sequence\n\rPress 2 to show current USER program\n\r**************************************************\n\r";
+  static u8 au8bProgramInterface[]="**************************************************\n\rLED Programming Interface \n\rPress 1 to program LED command sequence\n\rPress 2 to show current USER program\n\r**************************************************\n\r";
   static u8 au8Press1[]="Enter commands as LED-ONLINE-OFFTIME and press Enter\n\rTime is in milliseconds,max 100 commands\n\rLED colors:R,O,Y,G,C,B,P,W\n\rExample: R-100-200 (Red on at 100ms and off at 200ms)\n\rPress Enter on blank line to end\n\r";
   static u8 au8Input[20];
   u8 au8Enter[2]={10,10};
   u8 au8Enter1[2]={10,10};
   static u8 Index1=0;
+  static u8 Index2=0;
   static bool bClear=TRUE;
   static bool bChoose=TRUE;
-  static u8 u8Iput=0;
+  static u8 u8Press=0;
   static u8 u8ListSize=0;
   static LedCommandType Store;
+  static u8 u8ListNumber=1;
+  static bool bPrint=TRUE;
+  static u32 u32TimeCount=0;
    
+  /*Display the interface*/
   if(bProgramInterface==TRUE)
   {
     DebugPrintf(au8bProgramInterface);
     bProgramInterface=FALSE;    
   }
-  
+  /*each time when we input one line command ,clear the array*/
   if(bClear==TRUE)
   {
     for(u8 i=0;i<20;i++)
     {
       au8Input[i]='\0';   
     }
-    bClear=FALSE;
-    
+    bClear=FALSE; 
   }
-
+  /*Judge which pattern we enter*/
   if(bChoose==TRUE)
   {
     DebugScanf(au8Enter);
     if(au8Enter[0]=='1')
     {
       LedDisplayStartList();
-      u8Iput=1;
+      u8ListNumber=1;
+      u8ListSize=0;
+      u8Press=1;
       DebugPrintf("\n\r");
       DebugPrintf(au8Press1);
+      DebugPrintf("1:");
       bChoose=FALSE;
     }
     if(au8Enter[0]=='2')
     {
-      u8Iput=2;
+      u8Press=2;
       DebugPrintf("\n\r");
-      bChoose=FALSE;      
+      bChoose=FALSE;   
+      bPrint=TRUE;
+      u32TimeCount=0;
+      Index2=0;
     }
   }
-  if(u8Iput==1)
+  /*when we press 1*/
+  if(u8Press==1)
   {    
-
     DebugScanf(au8Enter1);
     if(au8Enter1[0]!=10)
     {      
-      if(au8Enter1[0]!='\r')
+      if(au8Enter1[0]!='\r')//Judge whether we press 'enter' or not
       {
-        au8Input[Index1]=au8Enter1[0];
-        Index1++;
+        if(au8Enter1[0]=='\b')//if we enter the button of delect
+        {
+          if(Index1!=0)
+          {
+            au8Input[Index1-1]='\0';
+            Index1--;
+          }
+          else
+          {
+            DebugPrintf(":");
+          }
+        }
+        else
+        {
+          au8Input[Index1]=au8Enter1[0];
+          Index1++;                   
+        }
       }
       else
       {
         DebugPrintf("\n");
-        if(Index1==0)
+        if(Index1==0)//This means we continuous input 'enter' twice
         {
-          u8Iput=2;
+          u8Press=2;
           bClear=TRUE; 
-        }
-        if(JudgeString(au8Input)==TRUE)
-        {
-          Store.eLED = LedColor(au8Input);
-          Store.u32Time = OnTime(au8Input);
-          Store.bOn = TRUE;
-          LedDisplayAddCommand(USER_LIST,&Store);
-
-          Store.eLED = LedColor(au8Input);
-          Store.u32Time = OffTime(au8Input);
-          Store.bOn = FALSE;
-          LedDisplayAddCommand(USER_LIST,&Store);
-          Index1=0;
-          bClear=TRUE;
-          u8ListSize+=2;
+          bPrint=TRUE;
+          u32TimeCount=0;
+          Index2=0;
         }
         else
         {
-          Index1=0;
-          bClear=TRUE;                   
-        }
+          if(JudgeString(au8Input)==TRUE)//Judge whether what we input is right command
+          {
+            u8ListNumber++;
+            DebugPrintNumber(u8ListNumber);
+            DebugPrintf(":");
+            Store.eLED = LedColor(au8Input);
+            Store.u32Time = OnTime(au8Input);
+            Store.bOn = TRUE;
+            LedDisplayAddCommand(USER_LIST,&Store);
 
+            Store.eLED = LedColor(au8Input);
+            Store.u32Time = OffTime(au8Input);
+            Store.bOn = FALSE;
+            LedDisplayAddCommand(USER_LIST,&Store);
+            Index1=0;
+            bClear=TRUE;
+            u8ListSize+=1;
+          }
+          else
+          {
+            DebugPrintf("Invalid command:incorrect format. Please use L-ONTIME-OFFTIME\n\r");
+            DebugPrintNumber(u8ListNumber);
+            DebugPrintf(":");
+            Index1=0;
+            bClear=TRUE;                   
+          }
+        }
       }
     }   
   }
-  if(u8Iput==2)
-  {  
-    LedDisplayPrintListLine(u8ListSize);
-
+  if(u8Press==2)
+  { 
+    u32TimeCount++;
+    if(bPrint)
+    {
+      DebugPrintf("\n\rCommand entry completeCommand count line is:");
+      DebugPrintNumber(u8ListSize);
+      DebugPrintf("\n\r");
+      DebugPrintf("LED  ON TIME   OFF TIME\n\r-----------------------   \n\r");
+      bPrint=FALSE; 
+    }
+    if(u32TimeCount==15&&Index2<u8ListSize)
+    {
+      LedDisplayPrintListLine(Index2);
+      u32TimeCount=0;
+      Index2++;
+    }
+    if(u32TimeCount==16)
+    {
+      DebugPrintf("\n\r");
+      DebugPrintf(au8bProgramInterface);
+      bChoose=TRUE;
+    }
   }
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-  
-    
-    
-    
-    
-    
-    
-    
-    
 
 
 } /* end UserApp1SM_Idle() */
