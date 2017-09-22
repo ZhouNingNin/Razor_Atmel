@@ -64,7 +64,10 @@ static fnCode_type UserApp1_StateMachine;            /* The state machine functi
 /**********************************************************************************************************************
 Function Definitions
 **********************************************************************************************************************/
-
+static bool bLightControl=TRUE;
+static u16 u16Timecount=0;
+static u8 u8Print[2]="0";
+static u8 u8Save[2]="0";
 /*--------------------------------------------------------------------------------------------------------------------*/
 /* Public functions                                                                                                   */
 /*--------------------------------------------------------------------------------------------------------------------*/
@@ -87,11 +90,11 @@ Promises:
 */
 void UserApp1Initialize(void)
 {
- 
+  PWMAudioSetFrequency(BUZZER1,200);
   /* If good initialization, set state to Idle */
   if( 1 )
   {
-    UserApp1_StateMachine = UserApp1SM_Idle;
+    UserApp1_StateMachine = UserApp1SM_state1;
   }
   else
   {
@@ -126,6 +129,136 @@ void UserApp1RunActiveState(void)
 /*--------------------------------------------------------------------------------------------------------------------*/
 /* Private functions                                                                                                  */
 /*--------------------------------------------------------------------------------------------------------------------*/
+static void UserApp1SM_state1(void)
+{
+  DebugScanf(u8Print);
+  /*Judge whether enter '2' and then enter '\r'*/
+  if(u8Print[0] == '2')
+  {
+    u8Save[0] = '2';
+    u8Print[0] = '0';
+  }
+  
+  if(u8Save[0]=='2'&&u8Print[0]=='\r')
+  {
+    u8Save[1] = '\r';
+    u8Print[0] = '0';
+  }
+  
+  if(u8Print[0]!= '0'&&u8Print[0] != '\r')
+  {
+    u8Save[0] = '0';
+    u8Save[1] = '\0';
+    u8Print[0] = '0';
+  }
+  /*Start to light up and display something what we want*/
+  if(bLightControl == TRUE)
+  {
+    DebugPrintf("\n\rEntering state 1\n\r");
+    LCDCommand(LCD_CLEAR_CMD);
+    LCDMessage(LINE1_START_ADDR,"STATE 1");
+
+    LedOff(CYAN);
+    LedOff(YELLOW);
+    LedOff(ORANGE);
+    LedOff(RED);
+    LedOff(GREEN);
+    LedOff(LCD_RED);
+    LedOff(LCD_BLUE);
+    LedOff(LCD_GREEN);
+    LedOn(WHITE);
+    LedOn(PURPLE);
+    LedOn(BLUE);
+    LedOn(CYAN);
+    LedOn(LCD_RED);
+    LedOn(LCD_BLUE);
+    PWMAudioOff(BUZZER1); 
+    bLightControl = FALSE;
+    ButtonAcknowledge(BUTTON2);/*in case we press BUTTON2 than 2 or more times*/
+  }
+  /*when we press down BUTTON2 or input '2<CR>'*/
+   if(WasButtonPressed(BUTTON2)||(u8Save[0] == '2'&&u8Save[1] == '\r'))
+  {
+    ButtonAcknowledge(BUTTON2);
+    UserApp1_StateMachine = UserApp1SM_state2;
+    bLightControl = TRUE;
+    u16Timecount = 0;
+    u8Save[0] = '0';
+    u8Save[1] = '\0';
+    u8Print[0] = '0';
+  }
+}
+static void UserApp1SM_state2(void)
+{
+  u16Timecount++;
+  DebugScanf(u8Print);
+  /*Judge whether enter '1' and then enter '\r'*/  
+  if(u8Print[0] == '1')
+  {
+    u8Save[0] = '1';
+    u8Print[0] = '0';
+  }
+  
+  if(u8Save[0] == '1'&&u8Print[0] == '\r')
+  {
+    u8Save[1] = '\r';
+    u8Print[0] = '0';
+  }
+  
+  if(u8Print[0] != '0'&&u8Print[0] != '\r')
+  {
+    u8Save[0] = '0';
+    u8Save[1] = '\0';
+    u8Print[0] = '0';
+  }
+  /*Start to light up and display something what we want*/  
+  if(bLightControl == TRUE)
+  {
+    DebugPrintf("\n\rEntering state 2\n\r");
+    LCDCommand(LCD_CLEAR_CMD);
+    LCDMessage(LINE1_START_ADDR,"STATE 2");
+    
+    LedOff(PURPLE);
+    LedOff(BLUE);
+    LedOff(CYAN);
+    LedOff(WHITE);
+    LedOff(LCD_RED);
+    LedOff(LCD_BLUE);
+    LedOff(LCD_GREEN);
+    LedPWM(LCD_RED,LED_PWM_70);  
+    LedPWM(LCD_GREEN,LED_PWM_25);
+    LedPWM(LCD_BLUE,LED_PWM_5);
+    LedBlink(GREEN,LED_1HZ);
+    LedBlink(YELLOW,LED_2HZ);
+    LedBlink(ORANGE,LED_4HZ);
+    LedBlink(RED,LED_8HZ);
+    bLightControl = FALSE;
+    PWMAudioOn(BUZZER1);
+    ButtonAcknowledge(BUTTON1);/*in case we press BUTTON1 than 2 or more times*/
+  }
+  
+   if(u16Timecount == 100)
+   {
+     PWMAudioOff(BUZZER1);
+   }
+  
+   if(u16Timecount == 1000)
+   {
+     PWMAudioOn(BUZZER1);
+     u16Timecount = 0;
+   }  
+  /*when we press down BUTTON1 or input '1<CR>'*/  
+   if(WasButtonPressed(BUTTON1)||(u8Save[0] == '1'&&u8Save[1] == '\r'))
+  {
+    ButtonAcknowledge(BUTTON1);
+    UserApp1_StateMachine = UserApp1SM_state1;
+    bLightControl = TRUE;
+    u8Save[0] = '0';
+    u8Save[1] = '\0';
+    u8Print[0] = '0';
+  }
+}
+
 
 
 /**********************************************************************************************************************
@@ -136,7 +269,7 @@ State Machine Function Definitions
 /* Wait for ??? */
 static void UserApp1SM_Idle(void)
 {
-
+  
 } /* end UserApp1SM_Idle() */
     
 #if 0
