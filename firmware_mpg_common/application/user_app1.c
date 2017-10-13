@@ -198,11 +198,12 @@ static void UserApp1SM_AntChannelAssign()
 /* Wait for ??? */
 static void UserApp1SM_Idle(void)
 {
-  static u8 au8TestMessage[] = {0, 0, 0, 0, 0xA5, 0, 0, 0};
+  static u8 au8TestMessage[] = {0x5B, 0, 0, 0, 0xFF, 0, 0, 0};
   u8 au8DataContent[] = "xxxxxxxxxxxxxxxx";
+  u8 au8LCDPrint[] = "xxxxxx--------xxxxxx";
   
   /* Check all the buttons and update au8TestMessage according to the button state */ 
-  au8TestMessage[0] = 0x00;
+ /* au8TestMessage[0] = 0x00;
   if( IsButtonPressed(BUTTON0) )
   {
     au8TestMessage[0] = 0xff;
@@ -250,6 +251,19 @@ static void UserApp1SM_Idle(void)
     }
     else if(G_eAntApiCurrentMessageClass == ANT_TICK)
     {
+      if(G_au8AntApiCurrentMessageBytes[ANT_TICK_MSG_EVENT_CODE_INDEX]==EVENT_TRANSFER_TX_FAILED)
+      {
+        
+        au8TestMessage[3]++;
+        if(au8TestMessage[3] == 0)
+        {
+          au8TestMessage[2]++;
+          if(au8TestMessage[2] == 0)
+          {
+            au8TestMessage[1]++;
+          }
+        }
+      }
      /* Update and queue the new message data */
       au8TestMessage[7]++;
       if(au8TestMessage[7] == 0)
@@ -260,8 +274,18 @@ static void UserApp1SM_Idle(void)
           au8TestMessage[5]++;
         }
       }
-      AntQueueBroadcastMessage(ANT_CHANNEL_USERAPP, au8TestMessage);
+      AntQueueAcknowledgedMessage(ANT_CHANNEL_USERAPP, au8TestMessage);
     }
+    /*Display on the LCD*/
+    for(u8 i = 0; i < 3; i++)
+    {
+      au8LCDPrint[2 * i]     = HexToASCIICharUpper(au8TestMessage[i+1] / 16);
+      au8LCDPrint[2 * i + 1] = HexToASCIICharUpper(au8TestMessage[i+1] % 16);
+      au8LCDPrint[2 * (7+i)] = HexToASCIICharUpper(au8TestMessage[i+5] / 16);
+      au8LCDPrint[2 * (7+i)+1] = HexToASCIICharUpper(au8TestMessage[i+5] % 16);      
+    }
+
+    LCDMessage(LINE2_START_ADDR,au8LCDPrint);
   } /* end AntReadData() */
   
 } /* end UserApp1SM_Idle() */
